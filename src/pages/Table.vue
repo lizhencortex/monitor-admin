@@ -20,18 +20,21 @@ export default {
   watch: {
     syncdata(val) {
         const data = this.syncdata
-        console.log(this.syncdata)
         this.rows = []
         for (let x of data) {
             let cpuinfo = x.sysinfo.cpu_overview.replace(/^\s+|\s+$/gm,'')
             let cpuinfo_split = cpuinfo.indexOf(' ')
-            cpuinfo = `${cpuinfo.slice(cpuinfo_split + 1)}, ${cpuinfo.slice(0, cpuinfo_split)} cores`
+            cpuinfo = `${cpuinfo.slice(cpuinfo_split + 1)}, ${cpuinfo.slice(0, cpuinfo_split)} ths`
+            cpuinfo = cpuinfo.replace(' CPU', '').replace(' Threadripper', '').replace(' Processor', '')
             const t = new Date(x.time)
             let mem = x.sysinfo.memory_overview.match(/([1-9][0-9]*)/g)
+            let gputemp = x.gpudetail.map(d => d['GPU Current Temp'].replace('C', '').replace(/^\s+|\s+$/gm,'')).join('/ ')
+            let gpupower = x.gpudetail.map(d => ~~(+d['Power Draw'].replace('W', ''))).join('/ ')
+            let gpufan = x.gpudetail.map(d => !d['Fan Speed'] ? 'N/A' : d['Fan Speed'].replace('%', '').replace(/^\s+|\s+$/gm,'')).join('/ ')
             this.rows.push({
                 ip: x.ip,
                 lip: x.sysinfo.localip.replace(/inet addr\:/g, '').replace(/inet/g, '').replace(/addr:/g, ''),
-                location: `${x.ipgeo.country}, ${x.ipgeo.regionName}, ${x.ipgeo.city}`,
+                location: `${x.ipgeo.countryCode}, ${x.ipgeo.region}, ${x.ipgeo.city}`,
                 mac: x.mac,
                 cpu: cpuinfo,
                 blocknum: x.sysinfo.blocknum,
@@ -39,10 +42,11 @@ export default {
                 usedMem: mem[1],
                 availMem: mem[5],
                 gpunum: x.gpuinfo['Attached GPUs'],
-                gputemp: x.gpudetail.map(d => d['GPU Current Temp'].replace('C', '℃')).join(' / '),
-                gpupower: x.gpudetail.map(d => d['Power Draw'].replace('C', '℃')).join(' / '),
-                mem: `${mem[1]} / ${mem[0]} MiB`,
-                time: t.toDateString() + ", " + t.toTimeString().slice(0, 8),
+                gputemp: gputemp,
+                gpupower: gpupower,
+                gpufan: gpufan,
+                mem: `${mem[1]} / ${mem[0]}`,
+                time: t.toDateString().slice(4) + ", " + t.toTimeString().slice(0, 8),
             })
         }
     }
@@ -79,24 +83,29 @@ export default {
           type: 'number',
         },
         {
-          label: 'Memory',
+          label: 'RAM (MiB)',
           field: 'mem',
           name: 'mem',
         },
         {
-          label: 'GPU Num',
+          label: 'GPUs',
           field: 'gpunum',
           name: 'gpunum',
         },
         {
-          label: 'GPU Temp',
+          label: 'GPU Temp (℃)',
           field: 'gputemp',
           name: 'gputemp',
         },
         {
-          label: 'GPU Power',
+          label: 'GPU Power (W)',
           field: 'gpupower',
           name: 'gpupower',
+        },
+        {
+          label: 'GPU Fan (%)',
+          field: 'gpufan',
+          name: 'gpufan',
         },
         {
           label: 'Last Report Time',

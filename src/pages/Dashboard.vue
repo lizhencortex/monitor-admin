@@ -1,8 +1,7 @@
 
 <template>
   <q-page class="row layout-padding">
-    <div class="col-md-3 q-pa-sm"> <com-overview :syncdata="syncdata"/> </div>
-    <div class="col-md-9 q-pa-sm"> <com-table :syncdata="syncdata"/> </div>
+    <div class="col-md-12 q-pa-sm"> <com-table :syncdata="syncdata"/> </div>
   </q-page>
 </template>
 
